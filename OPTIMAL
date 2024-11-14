@@ -1,0 +1,93 @@
+
+import java.util.ArrayList;
+import java.util.Scanner;
+
+public class OPR {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        // Get user input for total pages
+        System.out.print("Enter the total number of pages: ");
+        int totalPages = scanner.nextInt();
+
+        // Get user input for reference string
+        System.out.println("Enter the reference string (space-separated, up to " + totalPages + " pages): ");
+        scanner.nextLine(); // Consume the newline character
+        String[] input = scanner.nextLine().split(" ");
+        ArrayList<Integer> referenceString = new ArrayList<>();
+        for (int i = 0; i < totalPages && i < input.length; i++) {
+            referenceString.add(Integer.parseInt(input[i]));
+        }
+
+        // Get user input for the number of frames
+        System.out.print("Enter the number of frames: ");
+        int framesCount = scanner.nextInt();
+
+        ArrayList<Integer> frames = new ArrayList<>(framesCount);
+
+        // Initialize page faults counter
+        int pageFaults = 0;
+
+        System.out.println("\nPage Replacement Steps:");
+
+        // Process each page in the reference string
+        for (int i = 0; i < referenceString.size(); i++) {
+            int page = referenceString.get(i);
+
+            // Check if the page is already in frames
+            if (!frames.contains(page)) {
+                // Page fault occurred
+                pageFaults++;
+
+                if (frames.size() < framesCount) {
+                    // If there is space in frames, add the page directly
+                    frames.add(page);
+                } else {
+                    // If frames are full, find the optimal page to replace
+                    int pageToReplace = findOptimalPageToReplace(frames, referenceString, i + 1);
+                    frames.set(frames.indexOf(pageToReplace), page);
+                }
+            }
+
+            // Display the current state of frames horizontally
+            displayFrames(frames, framesCount);
+        }
+
+        System.out.println("\nTotal Page Faults: " + pageFaults);
+        scanner.close();
+    }
+
+    // Function to find the optimal page to replace
+    private static int findOptimalPageToReplace(ArrayList<Integer> frames, ArrayList<Integer> referenceString, int currentIndex) {
+        int farthest = currentIndex;
+        int pageToReplace = frames.get(0);
+
+        for (int framePage : frames) {
+            int nextOccurrence = Integer.MAX_VALUE;
+            for (int j = currentIndex; j < referenceString.size(); j++) {
+                if (referenceString.get(j) == framePage) {
+                    nextOccurrence = j;
+                    break;
+                }
+            }
+            if (nextOccurrence > farthest) {
+                farthest = nextOccurrence;
+                pageToReplace = framePage;
+            }
+        }
+        return pageToReplace;
+    }
+
+    // Function to display frames horizontally
+    private static void displayFrames(ArrayList<Integer> frames, int framesCount) {
+        for (int i = 0; i < framesCount; i++) {
+            if (i < frames.size()) {
+                System.out.print(frames.get(i) + "\t");
+            } else {
+                System.out.print("-\t");
+            }
+        }
+        System.out.println();
+    }
+}
+
