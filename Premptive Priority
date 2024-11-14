@@ -1,0 +1,107 @@
+import java.util.Scanner;
+
+class PremtivePriority {
+    static class Process {
+        int id;
+        int arrivalTime;
+        int burstTime;
+        int remainingTime;
+        int priority;
+        int completionTime;
+        int turnaroundTime;
+        int waitingTime;
+        int responseTime;
+        boolean started; // Flag to check if process has started
+
+        Process(int id, int arrivalTime, int burstTime, int priority) {
+            this.id = id;
+            this.arrivalTime = arrivalTime;
+            this.burstTime = burstTime;
+            this.remainingTime = burstTime;
+            this.priority = priority;
+            this.started = false;
+        }
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        
+        System.out.print("Enter the number of processes: ");
+        int n = sc.nextInt();
+        
+        Process[] processes = new Process[n];
+        
+        // Collecting process information
+        for (int i = 0; i < n; i++) {
+            System.out.print("Enter arrival time, burst time and priority for process " + (i + 1) + ": ");
+            int arrivalTime = sc.nextInt();
+            int burstTime = sc.nextInt();
+            int priority = sc.nextInt();
+            processes[i] = new Process(i + 1, arrivalTime, burstTime, priority);
+        }
+        
+        int currentTime = 0;
+        int completed = 0;
+        double totalWaitingTime = 0;
+        double totalTurnaroundTime = 0;
+
+        // Scheduling loop for preemptive priority scheduling
+        while (completed < n) {
+            int minPriority = Integer.MAX_VALUE;
+            int selectedProcessIndex = -1;
+
+            // Find process with the highest priority (lowest priority number) that has arrived
+            for (int i = 0; i < n; i++) {
+                if (processes[i].arrivalTime <= currentTime && processes[i].remainingTime > 0 &&
+                    processes[i].priority < minPriority) {
+                    minPriority = processes[i].priority;
+                    selectedProcessIndex = i;
+                }
+            }
+
+            if (selectedProcessIndex == -1) {
+                // If no process is ready, advance time
+                currentTime++;
+            } else {
+                Process p = processes[selectedProcessIndex];
+                
+                // If this is the first time the process is starting, set the response time
+                if (!p.started) {
+                    p.responseTime = currentTime - p.arrivalTime;
+                    p.started = true;
+                }
+                
+                // Process the selected process for 1 time unit
+                p.remainingTime--;
+                currentTime++;
+
+                // If the process finishes, calculate times and increment completed
+                if (p.remainingTime == 0) {
+                    p.completionTime = currentTime;
+                    p.turnaroundTime = p.completionTime - p.arrivalTime;
+                    p.waitingTime = p.turnaroundTime - p.burstTime;
+                    
+                    totalWaitingTime += p.waitingTime;
+                    totalTurnaroundTime += p.turnaroundTime;
+                    
+                    completed++;
+                }
+            }
+        }
+        
+        // Display process information
+        System.out.println("\nProcess\tArrival Time\tBurst Time\tPriority\tCompletion Time\tTurnaround Time\tWaiting Time\tResponse Time");
+        for (Process process : processes) {
+            System.out.printf("P%d\t\t%d\t\t%d\t\t%d\t\t%d\t\t\t%d\t\t\t%d\t\t%d\n",
+                    process.id, process.arrivalTime, process.burstTime, process.priority,
+                    process.completionTime, process.turnaroundTime, process.waitingTime, process.responseTime);
+        }
+        
+        // Display average waiting time and turnaround time
+        System.out.printf("\nAverage Waiting Time: %.2f\n", totalWaitingTime / n);
+        System.out.printf("Average Turnaround Time: %.2f\n", totalTurnaroundTime / n);
+        
+        sc.close();
+    }
+}
+
