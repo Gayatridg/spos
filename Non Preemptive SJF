@@ -1,0 +1,70 @@
+
+import java.util.Scanner;
+
+class SJF1 {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        System.out.print("Enter number of processes: ");
+        int n = sc.nextInt();
+
+        int[] burstTime = new int[n];
+        int[] waitingTime = new int[n];
+        int[] turnaroundTime = new int[n];
+        int[] completionTime = new int[n]; // New array for completion times
+        int[] process = new int[n];
+
+        System.out.println("Enter burst times:");
+        for (int i = 0; i < n; i++) {
+            System.out.print("P" + (i + 1) + ": ");
+            burstTime[i] = sc.nextInt();
+            process[i] = i + 1; // Storing process numbers
+        }
+
+        // Sorting burst times and keeping track of original process indices
+        for (int i = 0; i < n - 1; i++) {
+            for (int j = i + 1; j < n; j++) {
+                if (burstTime[i] > burstTime[j]) {
+                    // Swap burst times
+                    int tempBT = burstTime[i];
+                    burstTime[i] = burstTime[j];
+                    burstTime[j] = tempBT;
+
+                    // Swap process indices
+                    int tempProcess = process[i];
+                    process[i] = process[j];
+                    process[j] = tempProcess;
+                }
+            }
+        }
+
+        // First process has no waiting time
+        waitingTime[0] = 0;
+        completionTime[0] = burstTime[0]; // Completion time for first process is its burst time
+
+        // Calculate waiting time and completion time for remaining processes
+        for (int i = 1; i < n; i++) {
+            waitingTime[i] = waitingTime[i - 1] + burstTime[i - 1]; // Waiting time is the sum of previous burst times
+            completionTime[i] = completionTime[i - 1] + burstTime[i]; // Completion time is cumulative burst time
+        }
+
+        // Calculate turnaround time
+        for (int i = 0; i < n; i++) {
+            turnaroundTime[i] = waitingTime[i] + burstTime[i];
+        }
+
+        System.out.println("\nProcess\tBurst Time\tWaiting Time\tTurnaround Time\tCompletion Time");
+        int totalWait = 0, totalTAT = 0;
+        for (int i = 0; i < n; i++) {
+            System.out.println("P" + process[i] + "\t" + burstTime[i] + "\t\t" + waitingTime[i] + "\t\t" + turnaroundTime[i] + "\t\t" + completionTime[i]);
+            totalWait += waitingTime[i];
+            totalTAT += turnaroundTime[i];
+        }
+
+        System.out.println("\nAverage Waiting Time: " + (float) totalWait / n);
+        System.out.println("Average Turnaround Time: " + (float) totalTAT / n);
+
+        sc.close();
+    }
+}
+
