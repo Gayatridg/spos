@@ -1,0 +1,64 @@
+import java.util.*;
+
+public class FIFO {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        // Input total number of pages and frame size
+        System.out.print("Enter total number of pages: ");
+        int totalPages = scanner.nextInt();
+        System.out.print("Enter frame size: ");
+        int frameSize = scanner.nextInt();
+
+        // Input page reference string
+        System.out.print("Enter page reference string (space-separated): ");
+        int[] pages = new int[totalPages];
+        for (int i = 0; i < totalPages; i++) {
+            pages[i] = scanner.nextInt();
+        }
+
+        // Initialize frames and queue
+        int[] frames = new int[frameSize];
+        Queue<Integer> queue = new LinkedList<>();
+        int pageFaults = 0;
+
+        // FIFO page replacement logic
+        for (int i = 0; i < totalPages; i++) {
+            int currentPage = pages[i];
+            if (!queue.contains(currentPage)) {
+                // Page fault occurs
+                pageFaults++;
+                if (queue.size() == frameSize) {
+                    // Remove the oldest page
+                    int oldestPage = queue.poll();
+                    for (int j = 0; j < frameSize; j++) {
+                        if (frames[j] == oldestPage) {
+                            frames[j] = currentPage; // Replace with new page
+                            break;
+                        }
+                    }
+                } else {
+                    // Add new page to frames
+                    for (int j = 0; j < frameSize; j++) {
+                        if (frames[j] == 0) { // Find an empty frame
+                            frames[j] = currentPage;
+                            break;
+                        }
+                    }
+                }
+                queue.add(currentPage); // Add new page to the queue
+            }
+            // Display current frames
+            System.out.print("Current frames: ");
+            for (int frame : frames) {
+                System.out.print(frame + " ");
+            }
+            System.out.println();
+        }
+
+        // Output total page faults
+        System.out.println("Total page faults: " + pageFaults);
+        scanner.close();
+    }
+}
+
