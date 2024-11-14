@@ -1,0 +1,110 @@
+
+import java.util.concurrent.Semaphore;
+
+class BoundedBuffer {
+    private int[] buffer;
+    private int size;
+    private int count, in, out;
+
+    // Semaphore to count available slots and available items
+    private Semaphore empty;
+    private Semaphore full;
+    private Semaphore mutex;
+
+    public BoundedBuffer(int size) {
+        this.size = size;
+        buffer = new int[size];
+        count = 0;
+        in = 0;
+        out = 0;
+
+        // Initialize semaphores
+        empty = new Semaphore(size); // Number of empty slots
+        full = new Semaphore(0);      // Number of full slots
+        mutex = new Semaphore(1);     // Mutex to ensure mutual exclusion when accessing the buffer
+    }
+
+    public void produce(int item) throws InterruptedException {
+        empty.acquire(); // Wait for an empty slot
+        mutex.acquire(); // Ensure mutual exclusion when accessing the buffer
+
+        // Add item to buffer
+        buffer[in] = item;
+        in = (in + 1) % size;
+        count++;
+
+        System.out.println("Produced: " + item);
+
+        mutex.release(); // Release the mutex after modifying the buffer
+        full.release();  // Signal that there is a new item
+    }
+
+    public void consume() throws InterruptedException {
+        full.acquire();  // Wait for a full slot
+        mutex.acquire(); // Ensure mutual exclusion when accessing the buffer
+
+        // Remove item from buffer
+        int item = buffer[out];
+        out = (out + 1) % size;
+        count--;
+
+        System.out.println("Consumed: " + item);
+
+        mutex.release(); // Release the mutex after modifying the buffer
+        empty.release(); // Signal that there is an empty slot
+    }
+}
+
+class Producer extends Thread {
+    private BoundedBuffer buffer;
+
+    public Producer(BoundedBuffer buffer) {
+        this.buffer = buffer;
+    }
+
+    public void run() {
+        try {
+            for (int i = 0; i < 10; i++) {
+                buffer.produce(i); // Produce an item
+                Thread.sleep((int) (Math.random() * 1000)); // Simulate time taken to produce
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+}
+
+class Consumer extends Thread {
+    private BoundedBuffer buffer;
+
+    public Consumer(BoundedBuffer buffer) {
+        this.buffer = buffer;
+    }
+
+    public void run() {
+        try {
+            for (int i = 0; i < 10; i++) {
+                buffer.consume(); // Consume an item
+                Thread.sleep((int) (Math.random() * 1000)); // Simulate time taken to consume
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+}
+
+public class ProducerConsumerExample {
+    public static void main(String[] args) {
+        int bufferSize = 5; // Size of the buffer
+        BoundedBuffer buffer = new BoundedBuffer(bufferSize);
+
+        // Create producer and consumer threads
+        Thread producer = new Producer(buffer);
+        Thread consumer = new Consumer(buffer);
+
+        // Start the threads
+        producer.start();
+        consumer.start();
+    }
+}
+
