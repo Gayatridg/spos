@@ -1,0 +1,84 @@
+import java.util.Scanner;
+public class FCFS_Schedular {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("Enter the number of processes:");
+        int n = scanner.nextInt();
+
+        // Arrays to hold process details
+        int[] pid = new int[n];
+        int[] arrivalTime = new int[n];
+        int[] burstTime = new int[n];
+        int[] completionTime = new int[n];
+        int[] turnAroundTime = new int[n];
+        int[] waitingTime = new int[n];
+
+        // Input process details
+        for (int i = 0; i < n; i++) {
+            System.out.println("Enter Arrival Time and Burst Time for Process " + (i + 1) + ": ");
+            arrivalTime[i] = scanner.nextInt();
+            burstTime[i] = scanner.nextInt();
+            pid[i] = i + 1; // Process IDs
+        }
+
+        // Sort processes by arrival time
+        for (int i = 0; i < n; i++) {
+            for (int j = i + 1; j < n; j++) {
+                if (arrivalTime[i] > arrivalTime[j]) {
+                    // Swap arrival times
+                    int tempArrival = arrivalTime[i];
+                    arrivalTime[i] = arrivalTime[j];
+                    arrivalTime[j] = tempArrival;
+
+                    // Swap burst times
+                    int tempBurst = burstTime[i];
+                    burstTime[i] = burstTime[j];
+                    burstTime[j] = tempBurst;
+
+                    // Swap process IDs
+                    int tempPid = pid[i];
+                    pid[i] = pid[j];
+                    pid[j] = tempPid;
+                }
+            }
+        }
+
+        // Calculate completion time, turnaround time, and waiting time
+        int currentTime = 0;
+        for (int i = 0; i < n; i++) {
+            if (currentTime < arrivalTime[i]) {
+                currentTime = arrivalTime[i]; // Jump to the arrival time of the next process
+            }
+            currentTime += burstTime[i]; // Update current time
+            completionTime[i] = currentTime; // Set completion time
+            turnAroundTime[i] = completionTime[i] - arrivalTime[i]; // Calculate turnaround time
+            waitingTime[i] = turnAroundTime[i] - burstTime[i]; // Calculate waiting time
+        }
+
+        // Calculate average waiting time and average turnaround time
+        int totalWaitingTime = 0, totalTurnAroundTime = 0;
+        for (int i = 0; i < n; i++) {
+            totalWaitingTime += waitingTime[i];
+            totalTurnAroundTime += turnAroundTime[i];
+        }
+        
+        double avgWaitingTime = (double) totalWaitingTime / n;
+        double avgTurnAroundTime = (double) totalTurnAroundTime / n;
+
+        // Print the results
+        System.out.println("\nProcess\tArrival Time\tBurst Time\tCompletion Time\tTurnaround Time\tWaiting Time");
+        for (int i = 0; i < n; i++) {
+            System.out.println(pid[i] + "\t" + arrivalTime[i] + "\t\t" + burstTime[i] + "\t\t" +
+                               completionTime[i] + "\t\t" + turnAroundTime[i] + "\t\t" +
+                               waitingTime[i]);
+        }
+
+        // Print average waiting time and turnaround time
+        System.out.println("\nAverage Waiting Time: " + avgWaitingTime);
+        System.out.println("Average Turnaround Time: " + avgTurnAroundTime);
+       
+        scanner.close();
+    }
+}
+
