@@ -1,0 +1,87 @@
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Scanner;
+
+public class NonPreemptivePriorityScheduling {
+
+    static class Process {
+        int id;             // Process ID
+        int arrivalTime;    // Arrival time of the process
+        int burstTime;      // Burst time of the process
+        int priority;       // Priority of the process
+        int completionTime; // Completion time of the process
+        int turnaroundTime; // Turnaround time of the process
+        int waitingTime;    // Waiting time of the process
+        int responseTime;   // Response time of the process
+
+        Process(int id, int arrivalTime, int burstTime, int priority) {
+            this.id = id;
+            this.arrivalTime = arrivalTime;
+            this.burstTime = burstTime;
+            this.priority = priority;
+        }
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        System.out.print("Enter the number of processes: ");
+        int n = sc.nextInt();
+
+        Process[] processes = new Process[n];
+
+        // Collecting process information
+        for (int i = 0; i < n; i++) {
+            System.out.print("Enter arrival time, burst time and priority for process " + (i + 1) + ": ");
+            int arrivalTime = sc.nextInt();
+            int burstTime = sc.nextInt();
+            int priority = sc.nextInt();
+            processes[i] = new Process(i + 1, arrivalTime, burstTime, priority);
+        }
+
+        // Sort processes by arrival time, then by priority if arrival times are the same
+        Arrays.sort(processes, Comparator.comparingInt((Process p) -> p.arrivalTime)
+                                         .thenComparingInt(p -> p.priority));
+
+        int currentTime = 0;
+        double totalWaitingTime = 0;
+        double totalTurnaroundTime = 0;
+        double totalResponseTime = 0; // For average response time calculation
+
+        for (Process process : processes) {
+            // Update current time if it's less than arrival time
+            currentTime = Math.max(currentTime, process.arrivalTime);
+
+            // Calculate response time if it's the first time this process is being executed
+            if (process.responseTime == 0) {
+                process.responseTime = currentTime - process.arrivalTime;
+            }
+
+            process.completionTime = currentTime + process.burstTime;
+            process.turnaroundTime = process.completionTime - process.arrivalTime;
+            process.waitingTime = process.turnaroundTime - process.burstTime;
+
+            totalWaitingTime += process.waitingTime;
+            totalTurnaroundTime += process.turnaroundTime;
+            totalResponseTime += process.responseTime;
+
+            currentTime += process.burstTime;
+        }
+
+        // Print process details along with response time
+        System.out.println("\nProcess\tArrival Time\tBurst Time\tPriority\tCompletion Time\tTurnaround Time\tWaiting Time\tResponse Time");
+        for (Process process : processes) {
+            System.out.printf("P%d\t\t%d\t\t%d\t\t%d\t\t%d\t\t\t%d\t\t\t%d\t\t%d\n",
+                    process.id, process.arrivalTime, process.burstTime, process.priority,
+                    process.completionTime, process.turnaroundTime, process.waitingTime, process.responseTime);
+        }
+
+        // Print average waiting time, turnaround time, and response time
+        System.out.printf("\nAverage Waiting Time: %.2f\n", totalWaitingTime / n);
+        System.out.printf("Average Turnaround Time: %.2f\n", totalTurnaroundTime / n);
+        System.out.printf("Average Response Time: %.2f\n", totalResponseTime / n);
+
+        sc.close();
+    }
+}
+
