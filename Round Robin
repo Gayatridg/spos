@@ -1,0 +1,100 @@
+
+import java.util.Scanner;
+
+public class RR {
+
+    // Method to calculate the completion time, waiting time, and turnaround time
+    public static void calculateTimes(int n, int[] arrivalTime, int[] burstTime, int quantum) {
+        int[] completionTime = new int[n];
+        int[] waitingTime = new int[n];
+        int[] turnaroundTime = new int[n];
+
+        int[] remainingBurstTime = new int[n];
+        for (int i = 0; i < n; i++) {
+            remainingBurstTime[i] = burstTime[i];
+        }
+
+        int time = 0;  // Current time
+        int completed = 0;
+        int i = 0;
+
+        // Round Robin Logic
+        while (completed < n) {
+            if (remainingBurstTime[i] > 0) {
+                if (remainingBurstTime[i] <= quantum) {
+                    time += remainingBurstTime[i];
+                    remainingBurstTime[i] = 0;
+                    completionTime[i] = time;
+                    completed++;
+                } else {
+                    time += quantum;
+                    remainingBurstTime[i] -= quantum;
+                }
+
+                // Calculate turnaround time and waiting time for each process
+                if (remainingBurstTime[i] == 0) {
+                    turnaroundTime[i] = completionTime[i] - arrivalTime[i];
+                    waitingTime[i] = turnaroundTime[i] - burstTime[i];
+                }
+            }
+            i = (i + 1) % n;  // Move to next process
+        }
+
+        // Display the results
+        displayResults(arrivalTime, burstTime, completionTime, waitingTime, turnaroundTime);
+    }
+
+    // Method to display the results
+    public static void displayResults(int[] arrivalTime, int[] burstTime, int[] completionTime,
+                                      int[] waitingTime, int[] turnaroundTime) {
+        int n = arrivalTime.length;
+        double totalWaitingTime = 0, totalTurnaroundTime = 0;
+
+        System.out.println("Process\tArrival Time\tBurst Time\tCompletion Time\tWaiting Time\tTurnaround Time");
+
+        for (int i = 0; i < n; i++) {
+            totalWaitingTime += waitingTime[i];
+            totalTurnaroundTime += turnaroundTime[i];
+            System.out.println((i + 1) + "\t" + arrivalTime[i] + "\t\t" + burstTime[i] +
+                    "\t\t" + completionTime[i] + "\t\t" + waitingTime[i] + "\t\t" + turnaroundTime[i]);
+        }
+
+        double avgWaitingTime = totalWaitingTime / n;
+        double avgTurnaroundTime = totalTurnaroundTime / n;
+
+        System.out.println("\nAverage Waiting Time: " + avgWaitingTime);
+        System.out.println("Average Turnaround Time: " + avgTurnaroundTime);
+    }
+
+    // Main method to take input from the user and start the process
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        // Input the number of processes
+        System.out.print("Enter number of processes: ");
+        int n = scanner.nextInt();
+
+        // Arrays for arrival times and burst times
+        int[] arrivalTime = new int[n];
+        int[] burstTime = new int[n];
+
+        // Input arrival times and burst times for each process
+        for (int i = 0; i < n; i++) {
+            System.out.print("Enter arrival time of process " + (i + 1) + ": ");
+            arrivalTime[i] = scanner.nextInt();
+
+            System.out.print("Enter burst time of process " + (i + 1) + ": ");
+            burstTime[i] = scanner.nextInt();
+        }
+
+        // Input the time quantum
+        System.out.print("Enter the time quantum: ");
+        int quantum = scanner.nextInt();
+
+        // Calculate and display results
+        calculateTimes(n, arrivalTime, burstTime, quantum);
+
+        scanner.close();
+    }
+}
+
