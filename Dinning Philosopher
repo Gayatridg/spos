@@ -1,0 +1,108 @@
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.Scanner;
+
+public class DiningPhilosoper {
+
+    static class Philosopher extends Thread {
+        private int id;
+        private Semaphore leftFork;
+        private Semaphore rightFork;
+        private Lock mutex;
+
+        Philosopher(int id, Semaphore leftFork, Semaphore rightFork, Lock mutex) {
+            this.id = id;
+            this.leftFork = leftFork;
+            this.rightFork = rightFork;
+            this.mutex = mutex;
+        }
+
+        public void run() {
+            while (true) {
+                think();
+                tryToEat();
+            }
+        }
+
+        private void think() {
+            try {
+                System.out.println("Philosopher " + id + " is thinking.");
+                Thread.sleep((int) (Math.random() * 1000));
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+
+        private void tryToEat() {
+            try {
+                // Acquire the mutex before attempting to pick up forks
+                mutex.lock();
+
+                // Pick up forks
+                leftFork.acquire();
+                System.out.println("Philosopher " + id + " picked up left fork.");
+                rightFork.acquire();
+                System.out.println("Philosopher " + id + " picked up right fork.");
+
+                // Release the mutex after acquiring both forks
+                // In the previous version, we didn't need to check if the lock was held, but we'll adjust it here
+                if (mutex instanceof ReentrantLock) {
+                    ReentrantLock reentrantLock = (ReentrantLock) mutex;
+                    if (reentrantLock.isHeldByCurrentThread()) {
+                        mutex.unlock();
+                    }
+                }
+
+                eat();
+
+                // Put down forks after eating
+                leftFork.release();
+                rightFork.release();
+                System.out.println("Philosopher " + id + " put down forks.");
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } finally {
+                // Ensure the mutex is released if an interruption occurs
+                if (mutex instanceof ReentrantLock) {
+                    ReentrantLock reentrantLock = (ReentrantLock) mutex;
+                    if (reentrantLock.isHeldByCurrentThread()) {
+                        mutex.unlock();
+                    }
+                }
+            }
+        }
+
+        private void eat() {
+            try {
+                System.out.println("Philosopher " + id + " is eating.");
+                Thread.sleep((int) (Math.random() * 1000));
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.print("Enter the number of philosophers: ");
+        int numPhilosophers = scanner.nextInt();
+
+        Semaphore[] forks = new Semaphore[numPhilosophers];
+        for (int i = 0; i < numPhilosophers; i++) {
+            forks[i] = new Semaphore(1);
+        }
+
+        Lock mutex = new ReentrantLock();
+        Philosopher[] philosophers = new Philosopher[numPhilosophers];
+
+        for (int i = 0; i < numPhilosophers; i++) {
+            philosophers[i] = new Philosopher(i, forks[i], forks[(i + 1) % numPhilosophers], mutex);
+            philosophers[i].start();
+        }
+
+        scanner.close();
+    }
+}
+
