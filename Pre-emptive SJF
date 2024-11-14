@@ -1,0 +1,79 @@
+
+import java.util.*;
+
+class SJFP {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        System.out.print("Enter number of processes: ");
+        int n = sc.nextInt();
+        
+        int[] burstTime = new int[n];
+        int[] remainingTime = new int[n];
+        int[] waitingTime = new int[n];
+        int[] turnaroundTime = new int[n];
+        int[] completionTime = new int[n]; // Array to hold completion times
+        int[] arrivalTime = new int[n];
+        int[] process = new int[n]; // To track the process ID
+        
+        System.out.println("Enter burst times and arrival times:");
+        for (int i = 0; i < n; i++) {
+            System.out.print("P" + (i + 1) + " Burst Time: ");
+            burstTime[i] = sc.nextInt();
+            remainingTime[i] = burstTime[i];
+            process[i] = i + 1; // Storing process numbers
+            
+            System.out.print("P" + (i + 1) + " Arrival Time: ");
+            arrivalTime[i] = sc.nextInt();
+        }
+        
+        int totalWait = 0, totalTAT = 0;
+        int time = 0, completed = 0;
+        
+        // Continue until all processes are completed
+        while (completed < n) {
+            int minIndex = -1;
+            int minBurstTime = Integer.MAX_VALUE;
+            
+            // Find the process with the shortest burst time that has arrived
+            for (int i = 0; i < n; i++) {
+                if (remainingTime[i] > 0 && arrivalTime[i] <= time && remainingTime[i] < minBurstTime) {
+                    minBurstTime = remainingTime[i];
+                    minIndex = i;
+                }
+            }
+            
+            if (minIndex == -1) {
+                time++; // If no process is ready, move time forward
+                continue;
+            }
+            
+            // Decrease the remaining time for the selected process
+            remainingTime[minIndex]--;
+            if (remainingTime[minIndex] == 0) {
+                completed++;
+                int endTime = time + 1; // Completion time for this process
+                completionTime[minIndex] = endTime;
+                turnaroundTime[minIndex] = completionTime[minIndex] - arrivalTime[minIndex];
+                waitingTime[minIndex] = turnaroundTime[minIndex] - burstTime[minIndex];
+                totalWait += waitingTime[minIndex];
+                totalTAT += turnaroundTime[minIndex];
+            }
+            
+            time++;
+        }
+
+        // Print results
+        System.out.println("\nProcess\tArrival Time\tBurst Time\tWaiting Time\tTurnaround Time\tCompletion Time");
+        for (int i = 0; i < n; i++) {
+            System.out.println("P" + process[i] + "\t" + arrivalTime[i] + "\t\t" + burstTime[i] + "\t\t" + 
+                               waitingTime[i] + "\t\t" + turnaroundTime[i] + "\t\t" + completionTime[i]);
+        }
+
+        // Print average waiting time and turnaround time
+        System.out.println("\nAverage Waiting Time: " + (float) totalWait / n);
+        System.out.println("Average Turnaround Time: " + (float) totalTAT / n);
+
+        sc.close();
+    }
+}
+
