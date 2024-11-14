@@ -1,0 +1,138 @@
+1 WAY
+import java.util.*;
+
+public class LRU {
+    static boolean checkHit(int incomingPage, int[] queue, int occupied) {
+        for (int i = 0; i < occupied; i++) {
+            if (incomingPage == queue[i])
+                return true;
+        }
+        return false;
+    }
+
+    static void printFrame(int[] queue, int occupied) {
+        for (int i = 0; i < occupied; i++)
+            System.out.print(queue[i] + "\t\t\t");
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        // Input number of frames
+        System.out.print("Enter the number of frames: ");
+        int frames = sc.nextInt();
+
+        // Input length of incoming stream
+        System.out.print("Enter the number of pages in the incoming stream: ");
+        int n = sc.nextInt();
+        int[] incomingStream = new int[n];
+
+        // Input incoming stream
+        System.out.println("Enter the incoming stream of pages:");
+        for (int i = 0; i < n; i++) {
+            incomingStream[i] = sc.nextInt();
+        }
+
+        int[] queue = new int[frames];
+        int[] distance = new int[frames];
+        int occupied = 0;
+        int pagefault = 0;
+
+        System.out.println("Page\t Frame1 \t Frame2 \t Frame3");
+
+        for (int i = 0; i < n; i++) {
+            System.out.print(incomingStream[i] + ": \t\t");
+
+            if (checkHit(incomingStream[i], queue, occupied)) {
+                printFrame(queue, occupied);
+            } else if (occupied < frames) {
+                queue[occupied] = incomingStream[i];
+                pagefault++;
+                occupied++;
+                printFrame(queue, occupied);
+            } else {
+                int max = Integer.MIN_VALUE;
+                int index = -1;
+                for (int j = 0; j < frames; j++) {
+                    distance[j] = 0;
+                    for (int k = i - 1; k >= 0; k--) {
+                        ++distance[j];
+                        if (queue[j] == incomingStream[k])
+                            break;
+                    }
+                    if (distance[j] > max) {
+                        max = distance[j];
+                        index = j;
+                    }
+                }
+                queue[index] = incomingStream[i];
+                printFrame(queue, occupied);
+                pagefault++;
+            }
+            System.out.println();
+        }
+        System.out.println("Total Page Faults: " + pagefault);
+
+        sc.close();
+    }
+}
+
+
+2 WAY
+package newspos;
+
+import java.util.*;
+
+public class LRU {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        // Input total number of pages and frame size
+        System.out.print("Enter total number of pages: ");
+        int totalPages = scanner.nextInt();
+        System.out.print("Enter frame size: ");
+        int frameSize = scanner.nextInt();
+
+        // Input page reference string
+        System.out.print("Enter page reference string (space-separated): ");
+        int[] pages = new int[totalPages];
+        for (int i = 0; i < totalPages; i++) {
+            pages[i] = scanner.nextInt();
+        }
+
+        // Initialize frames and a list to track pages
+        List<Integer> frames = new ArrayList<>();
+        int pageFaults = 0;
+
+        // LRU page replacement logic
+        for (int i = 0; i < totalPages; i++) {
+            int currentPage = pages[i];
+            if (!frames.contains(currentPage)) {
+                // Page fault occurs
+                pageFaults++;
+                if (frames.size() == frameSize) {
+                    // Remove the least recently used page
+                    frames.remove(0); // Remove the first page (least recently used)
+                }
+                // Add the new page to frames
+                frames.add(currentPage);
+            } else {
+                // Page is already in the frames, update its position
+                frames.remove((Integer) currentPage); // Remove the page
+                frames.add(currentPage); // Add it back to the end (most recently used)
+            }
+
+            // Display current frames
+            System.out.print("Current frames: ");
+            for (int frame : frames) {
+                System.out.print(frame + " ");
+            }
+            System.out.println();
+        }
+
+        // Output total page faults
+        System.out.println("Total page faults: " + pageFaults);
+        scanner.close();
+    }
+}
+
